@@ -1,0 +1,56 @@
+name: PageCanary deploy check
+description: After a deploy, an AI agent walks your signup, booking, checkout or contact form like a customer, and fails the check if it broke.
+author: n34t, LLC
+branding:
+  icon: check-circle
+  color: yellow
+inputs:
+  api-key:
+    description: Your PageCanary API key (pc_live_…), from https://www.pagecanary.com/dashboard/api. Store it as a secret.
+    required: true
+  url:
+    description: The site to walk. Defaults to the deployment's URL when the workflow runs on deployment_status (Vercel previews and production).
+    required: false
+    default: ""
+  vercel-bypass-secret:
+    description: Vercel's "Protection Bypass for Automation" secret, for previews behind deployment protection. Sent only to the deployment's own host.
+    required: false
+    default: ""
+  fail-on:
+    description: "failed: fail this step when the walk finds the flow broken (default). never: report only."
+    required: false
+    default: failed
+  timeout-minutes:
+    description: How long to wait for the walk.
+    required: false
+    default: "6"
+  api-base:
+    description: PageCanary's API address.
+    required: false
+    default: https://www.pagecanary.com
+outputs:
+  result:
+    description: passed, failed, cant-test or planned (or error when the check itself couldn't run).
+    value: ${{ steps.walk.outputs.result }}
+  headline:
+    description: One line on what happened.
+    value: ${{ steps.walk.outputs.headline }}
+  recording-url:
+    description: The recording of the walk.
+    value: ${{ steps.walk.outputs.recording-url }}
+  walk-id:
+    description: The walk's id in PageCanary.
+    value: ${{ steps.walk.outputs.walk-id }}
+runs:
+  using: composite
+  steps:
+    - id: walk
+      shell: bash
+      env:
+        PC_API_KEY: ${{ inputs.api-key }}
+        PC_URL: ${{ inputs.url || github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+        PC_BYPASS: ${{ inputs.vercel-bypass-secret }}
+        PC_FAIL_ON: ${{ inputs.fail-on }}
+        PC_TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
+        PC_API_BASE: ${{ inputs.api-base }}
+      run: bash "${{ github.action_path }}/check.sh"
