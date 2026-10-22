@@ -1,5 +1,5 @@
 name: PageCanary deploy check
-description: After a deploy, an AI agent walks your signup, booking, checkout or contact form like a customer, and fails the check if it broke.
+description: After each deploy, an AI agent walks your signup, booking, checkout or contact form like a customer; fails if it breaks.
 author: n34t, LLC
 branding:
   icon: check-circle
